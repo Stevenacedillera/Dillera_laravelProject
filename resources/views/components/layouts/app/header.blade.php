@@ -13,7 +13,10 @@
 
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
+                    {{ __('Games Dashboard') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="server" :href="route('platforms.index')" :current="request()->routeIs('platforms.*')" wire:navigate>
+                    {{ __('Platforms') }}
                 </flux:navbar.item>
             </flux:navbar>
 
@@ -97,9 +100,12 @@
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')">
+                <flux:navlist.group :heading="__('Game Collection')">
                     <flux:navlist.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                      {{ __('Dashboard') }}
+                      {{ __('Games Dashboard') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="server" :href="route('platforms.index')" :current="request()->routeIs('platforms.*')" wire:navigate>
+                      {{ __('Platforms') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
