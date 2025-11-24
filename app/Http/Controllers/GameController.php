@@ -9,16 +9,75 @@ use Illuminate\Http\Request;
 class GameController extends Controller
 {
     /**
-     * Display a listing of games
+     * Display the games dashboard
      */
-    public function index()
+    public function index(Request $request)
     {
-        $games = Game::with('platform')->latest()->get();
-        $platforms = Platform::orderBy('name')->get();
         $totalGames = Game::count();
         $totalPlatforms = Platform::count();
+        $platforms = Platform::latest()->get();
+        
+        // Get unique genres for filter
+        $genres = Game::whereNotNull('genre')
+            ->distinct()
+            ->pluck('genre')
+            ->filter()
+            ->sort()
+            ->values();
+        
+        // Calculate average release year
+        $avgReleaseYear = Game::whereNotNull('release_year')->avg('release_year');
+        $avgReleaseYear = $avgReleaseYear ? round($avgReleaseYear) : null;
+        
+        // Get most common genre
+        $mostCommonGenre = Game::whereNotNull('genre')
+            ->selectRaw('genre, count(*) as count')
+            ->groupBy('genre')
+            ->orderBy('count', 'desc')
+            ->first();
+        
+        // Build query with filters
+        $query = Game::with('platform');
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('genre', 'like', "%{$search}%")
+                  ->orWhere('developer', 'like', "%{$search}%")
+                  ->orWhereHas('platform', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Genre filter
+        if ($request->filled('genre')) {
+            $query->where('genre', $request->genre);
+        }
+        
+        // Platform filter
+        if ($request->filled('platform_id')) {
+            $query->where('platform_id', $request->platform_id);
+        }
+        
+        // Sort
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+        
+        $games = $query->get();
 
-        return view('dashboard', compact('games', 'platforms', 'totalGames', 'totalPlatforms'));
+        return view('dashboard', compact(
+            'totalGames',
+            'totalPlatforms',
+            'games',
+            'platforms',
+            'genres',
+            'avgReleaseYear',
+            'mostCommonGenre'
+        ));
     }
 
     /**

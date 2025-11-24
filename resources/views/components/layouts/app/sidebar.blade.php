@@ -7,28 +7,72 @@
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
+            <!-- Logo Section -->
             <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo />
+                <span class="hidden text-sm font-semibold text-neutral-700 dark:text-neutral-200 lg:block">
+                    Game Collection
+                </span>
             </a>
 
+            <!-- Main Navigation -->
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Game Collection')" class="grid">
-                    <flux:navlist.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Games Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item icon="server" :href="route('platforms.index')" :current="request()->routeIs('platforms.*')" wire:navigate>{{ __('Platforms') }}</flux:navlist.item>
+                <flux:navlist.group :heading="__('Collection')" class="grid">
+                    <flux:navlist.item icon="squares-2x2" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="server" :href="route('platforms.index')" :current="request()->routeIs('platforms.*')" wire:navigate>
+                        {{ __('Platforms') }}
+                    </flux:navlist.item>
+                </flux:navlist.group>
+
+                <flux:navlist.group :heading="__('Settings')" class="grid">
+                    <flux:navlist.item icon="user-circle" :href="route('settings.profile')" :current="request()->routeIs('settings.profile')" wire:navigate>
+                        {{ __('Profile') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="key" :href="route('settings.password')" :current="request()->routeIs('settings.password')" wire:navigate>
+                        {{ __('Password') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="paint-brush" :href="route('settings.appearance')" :current="request()->routeIs('settings.appearance')" wire:navigate>
+                        {{ __('Appearance') }}
+                    </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
+            <!-- Quick Stats Section -->
+            @if(auth()->check())
+                @php
+                    try {
+                        $totalGames = \App\Models\Game::count();
+                        $totalPlatforms = \App\Models\Platform::count();
+                    } catch (\Exception $e) {
+                        $totalGames = 0;
+                        $totalPlatforms = 0;
+                    }
+                @endphp
+                <div class="hidden rounded-lg border border-neutral-200 bg-gradient-to-br from-blue-50 to-purple-50 p-4 dark:border-neutral-700 dark:from-blue-900/20 dark:to-purple-900/20 lg:block">
+                    <div class="flex items-center gap-2">
+                        <div class="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/40">
+                            <svg class="h-5 w-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-medium text-neutral-700 dark:text-neutral-300">Your Collection</p>
+                            <div class="mt-1 flex gap-3 text-xs text-neutral-600 dark:text-neutral-400">
+                                <span class="font-semibold text-blue-600 dark:text-blue-400">{{ $totalGames }}</span>
+                                <span>games</span>
+                                <span class="mx-1">•</span>
+                                <span class="font-semibold text-purple-600 dark:text-purple-400">{{ $totalPlatforms }}</span>
+                                <span>platforms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <flux:spacer />
-
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                {{ __('Documentation') }}
-                </flux:navlist.item>
-            </flux:navlist>
 
             <!-- Desktop User Menu -->
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
@@ -61,7 +105,16 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('dashboard')" icon="squares-2x2" wire:navigate>{{ __('Dashboard') }}</flux:menu.item>
+                        <flux:menu.item :href="route('platforms.index')" icon="server" wire:navigate>{{ __('Platforms') }}</flux:menu.item>
+                    </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    <flux:menu.radio.group>
+                        <flux:menu.item :href="route('settings.profile')" icon="user-circle" wire:navigate>{{ __('Profile Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.password')" icon="key" wire:navigate>{{ __('Change Password') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.appearance')" icon="paint-brush" wire:navigate>{{ __('Appearance') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -111,7 +164,16 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('dashboard')" icon="squares-2x2" wire:navigate>{{ __('Dashboard') }}</flux:menu.item>
+                        <flux:menu.item :href="route('platforms.index')" icon="server" wire:navigate>{{ __('Platforms') }}</flux:menu.item>
+                    </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    <flux:menu.radio.group>
+                        <flux:menu.item :href="route('settings.profile')" icon="user-circle" wire:navigate>{{ __('Profile Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.password')" icon="key" wire:navigate>{{ __('Change Password') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.appearance')" icon="paint-brush" wire:navigate>{{ __('Appearance') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
